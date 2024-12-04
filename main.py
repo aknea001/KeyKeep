@@ -2,7 +2,7 @@ import sqlconnect
 
 def main():
     while True:
-        x = str(input("\n\n>> "))
+        x = str(input(">> "))
         if x == "exit":
             break
         elif x == "new":
@@ -11,7 +11,18 @@ def main():
             password = str(input("Password: "))
 
             sqlconnect.insert(password, title or None, username or None)
-        elif x == "get":
+        elif x.startswith("get"):
+            try:
+                xLst = x.split(" ")
+                pID = int(xLst[1])
+                sqlconnect.get(pID)
+                continue
+            except IndexError:
+                pass
+            except ValueError:
+                print("Has to be a whole number..")
+                continue
+
             try:
                 pID = int(input("ID: "))
                 sqlconnect.get(pID)

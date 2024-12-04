@@ -102,5 +102,34 @@ def get(pID):
             cursor.close()
             db.close()
 
+def rightMaster(passInput):
+    import hashlib
+
+    try:
+        db = mysql.connector.connect(**sqlconfig)
+        cursor = db.cursor()
+
+        query = "SELECT salt, hash FROM users WHERE id = %s"
+        cursor.execute(query, (1, ))
+        salt, correctHash = cursor.fetchone()
+
+        passInput += str(salt)
+        
+        hashObject = hashlib.sha256(str(passInput).encode())
+        hashed = hashObject.hexdigest()
+
+        if hashed == correctHash:
+            return True
+        else:
+            return False
+    except mysql.connector.Error as e:
+        db = None
+        print(f"sqlconnect rightMaster ERROR: {e}")
+    finally:
+        if db != None and db.is_connected():
+            cursor.close()
+            db.close()
+
+
 if __name__ == "__main__":
-    get(1)
+    rightMaster("password")

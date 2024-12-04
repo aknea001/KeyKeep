@@ -2,6 +2,12 @@ import sqlconnect
 
 def main():
     while True:
+        x = str(input("Master Password: "))
+
+        if sqlconnect.rightMaster(x):
+            break
+
+    while True:
         x = str(input(">> "))
         if x == "exit":
             break

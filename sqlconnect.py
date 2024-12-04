@@ -60,13 +60,14 @@ def insert(passwd, title=None, usrname=None):
 
         print("Successfully inserted into db..")
     except mysql.connector.Error as e:
+        db = None
         print(f"sqlconnect insert ERROR: {e}")
     finally:
         if db != None and db.is_connected():
             cursor.close()
             db.close()
 
-def delete():
+def get(pID):
     from Crypto.Cipher import AES
     from Crypto.Random import get_random_bytes
 
@@ -77,7 +78,7 @@ def delete():
         cursor = db.cursor()
 
         query = "SELECT password FROM passwds WHERE id = %s"
-        cursor.execute(query, (6, ))
+        cursor.execute(query, (pID, ))
         x = cursor.fetchone()[0]
 
         b64password = base64.b64decode(x)
@@ -100,4 +101,5 @@ def delete():
             cursor.close()
             db.close()
 
-delete()
+if __name__ == "__main__":
+    get(1)

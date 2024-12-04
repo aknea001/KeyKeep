@@ -28,35 +28,32 @@ def insert(passwd, title=None, usrname=None):
     try:
         with open(".key/key.bin", "rb") as f:
             key = f.read()
-
-        with open(".key/iv.bin", "rb") as f:
-            iv = f.read()
     except FileNotFoundError:
         key = get_random_bytes(16)
-        iv = get_random_bytes(16)
+        
+    iv = get_random_bytes(16)
 
     passwd = pad(passwd).encode()
     cipher = AES.new(key, AES.MODE_CBC, iv)
 
     encryptedPass = cipher.encrypt(passwd)
+
     b64EncryptedPass = base64.b64encode(encryptedPass)
+    b64iv = base64.b64encode(iv)
 
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "INSERT INTO passwds (password, title, username)\
+        query = "INSERT INTO passwds (password, iv, title, username)\
                 VALUES\
-                (%s, %s, %s)"
+                (%s, %s, %s, %s)"
         
-        cursor.execute(query, (b64EncryptedPass, title, usrname))
+        cursor.execute(query, (b64EncryptedPass, b64iv, title, usrname))
         db.commit()
 
         with open(".key/key.bin", "wb") as f:
             f.write(key)
-
-        with open(".key/iv.bin", "wb") as f:
-            f.write(iv)
 
         print("Successfully inserted into db..")
     except mysql.connector.Error as e:
@@ -69,7 +66,6 @@ def insert(passwd, title=None, usrname=None):
 
 def get(pID):
     from Crypto.Cipher import AES
-    from Crypto.Random import get_random_bytes
 
     import base64
 
@@ -79,19 +75,17 @@ def get(pID):
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "SELECT password FROM passwds WHERE id = %s"
+        query = "SELECT password, iv FROM passwds WHERE id = %s"
         cursor.execute(query, (pID, ))
-        x = cursor.fetchone()[0]
+        x = cursor.fetchone()
 
-        b64password = base64.b64decode(x)
+        b64password = base64.b64decode(x[0])
+        b64iv = base64.b64decode(x[1])
         
         with open(".key/key.bin", "rb") as f:
             key = f.read()
 
-        with open(".key/iv.bin", "rb") as f:
-            iv = f.read()
-
-        cipher = AES.new(key, AES.MODE_CBC, iv)
+        cipher = AES.new(key, AES.MODE_CBC, b64iv)
         decrypted = cipher.decrypt(b64password)
         decrypted = unpad(decrypted).decode()
 
@@ -101,7 +95,8 @@ def get(pID):
 
         print("Added password to your clipboard..")
     except mysql.connector.Error as e:
-        print(e)
+        db = None
+        print(f"sqlconnect get ERROR: {e}")
     finally:
         if db != None and db.is_connected():
             cursor.close()

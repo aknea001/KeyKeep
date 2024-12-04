@@ -73,6 +73,8 @@ def get(pID):
 
     import base64
 
+    from tkinter import Tk
+
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
@@ -93,7 +95,11 @@ def get(pID):
         decrypted = cipher.decrypt(b64password)
         decrypted = unpad(decrypted).decode()
 
-        print(decrypted)
+        root = Tk()
+        root.withdraw()
+        root.clipboard_append(decrypted)
+
+        print("Added password to your clipboard..")
     except mysql.connector.Error as e:
         print(e)
     finally:

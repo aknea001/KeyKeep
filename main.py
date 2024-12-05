@@ -1,16 +1,23 @@
 import sqlconnect
+from pwinput import pwinput
+from os import system
 
 def main():
     while True:
-        x = str(input("Master Password: "))
+        x = pwinput("Master Password: ")
 
         if sqlconnect.rightMaster(x):
+            system("clear")
             break
+        else:
+            print("Wrong Password.. \nTry again..")
 
     while True:
-        x = str(input(">> "))
+        x = str(input(">> ")).strip()
         if x == "exit":
             break
+        elif x == "clear":
+            system("clear")
         elif x == "new":
             title = str(input("Title: "))
             username = str(input("Username: "))

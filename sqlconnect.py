@@ -87,13 +87,20 @@ def get(pID):
 
         cipher = AES.new(key, AES.MODE_CBC, b64iv)
         decrypted = cipher.decrypt(b64password)
-        decrypted = unpad(decrypted).decode()
+        try:
+            decrypted = unpad(decrypted).decode()
+        except UnicodeDecodeError:
+            print("ERROR: wrong key or problem with system..")
+            return
 
         root = Tk()
         root.withdraw()
         root.clipboard_append(decrypted)
 
-        print("Added password to your clipboard..")
+        if decrypted == "":
+            print("Wrong key..")
+        else:
+            print("Added password to your clipboard..")
     except mysql.connector.Error as e:
         db = None
         print(f"sqlconnect get ERROR: {e}")
@@ -129,7 +136,6 @@ def rightMaster(passInput):
         if db != None and db.is_connected():
             cursor.close()
             db.close()
-
 
 if __name__ == "__main__":
     rightMaster("password")

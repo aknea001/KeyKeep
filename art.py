@@ -3,20 +3,18 @@
 def table(lst):
     maxlens = {}
 
-    maxLen = 0
+    for i in range(len(lst[0])):
+        maxlens[i] = 0
+        print(maxlens)
 
     for el in lst:
         print(el)
         for i in range(len(el)):
             print(i)
-            if len(el[i]) > maxLen:
-                maxLen = len(el[i])
+            if len(el[i]) + 2 > maxlens[i]:
+                maxlens[i] = len(el[i] + 2)
 
-            print(maxLen)
-
-            maxlens[i] = maxLen + 2
-
-    print(maxlens)
+            print(maxlens)
 
     column = ["ID", "Title", "Username"]
     for i in range(len(lst[0])):

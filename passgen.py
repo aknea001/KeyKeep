@@ -24,7 +24,7 @@ def generatePass(len, rm=None):
     charLst = getChars(rm)
 
     passwd = ""
-    for i in range(1, len+1):
+    for i in range(1, int(len)+1):
         passwd += choice(charLst)
 
     return passwd

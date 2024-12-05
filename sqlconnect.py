@@ -137,5 +137,23 @@ def rightMaster(passInput):
             cursor.close()
             db.close()
 
+def getInfo():
+    try:
+        db = mysql.connector.connect(**sqlconfig)
+        cursor = db.cursor()
+
+        query = "SELECT id, title, username, modified from passwds"
+        cursor.execute(query)
+
+        info = cursor.fetchall()
+        return info
+    except mysql.connector.Error as e:
+        db = None
+        print(f"sqlconnect getInfo ERROR: {e}")
+    finally:
+        if db != None and db.is_connected():
+            cursor.close()
+            db.close()
+
 if __name__ == "__main__":
-    rightMaster("password")
+    getInfo()

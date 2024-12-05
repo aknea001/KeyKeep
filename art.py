@@ -3,13 +3,11 @@
 def table(lst):
     maxlens = {}
 
-    maxLen = None
+    maxLen = 0
 
     for el in lst:
         print(el)
         for i in range(len(el)):
-            if maxLen == None:
-                maxLen = 0
             print(i)
             if len(el[i]) > maxLen:
                 maxLen = len(el[i])

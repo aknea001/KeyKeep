@@ -1,5 +1,3 @@
-import sqlconnect
-
 def table(lst):
     maxlens = {}
 
@@ -38,5 +36,3 @@ def table(lst):
     for i in range(len(lst[0])):
         print(f"+{'-' * maxlens[i]}", end="")
     print("+")
-
-table(sqlconnect.getInfo())

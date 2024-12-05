@@ -1,12 +1,15 @@
-import sqlconnect
+#import sqlconnect
 
 def table(lst):
     maxlens = {}
 
+    maxLen = None
+
     for el in lst:
         print(el)
         for i in range(len(el)):
-            maxLen = 0
+            if maxLen == None:
+                maxLen = 0
             print(i)
             if len(el[i]) > maxLen:
                 maxLen = len(el[i])
@@ -47,6 +50,6 @@ def table(lst):
         print(f"+{'-' * maxlens[i]}", end="")
     print("+")
 
-lst = [("1", 'Testing yk yk', "None"), ("1", 'Testing yk yk', "None"), ("1", 'Testing yk yk', "None")]
-table(sqlconnect.getInfo())
-print(sqlconnect.getInfo())
+lst = [("1", 'Testing yk yk', "None"), ("2", 'Testing', "None"), ("3", 'None', "None")]
+table(lst)
+#print(sqlconnect.getInfo())

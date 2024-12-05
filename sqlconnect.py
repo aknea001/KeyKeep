@@ -142,11 +142,17 @@ def getInfo():
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "SELECT id, title, username, modified from passwds"
+        query = "SELECT id, title, username from passwds"
         cursor.execute(query)
 
         info = cursor.fetchall()
-        return info
+
+        goodInfo = []
+
+        for el in info:
+            goodInfo.append(list(map(str, el)))
+
+        return goodInfo
     except mysql.connector.Error as e:
         db = None
         print(f"sqlconnect getInfo ERROR: {e}")
@@ -156,4 +162,4 @@ def getInfo():
             db.close()
 
 if __name__ == "__main__":
-    getInfo()
+    print(getInfo())

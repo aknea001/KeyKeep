@@ -12,6 +12,8 @@ def main():
 
         if sqlconnect.rightMaster(x):
             system("clear")
+            salt = sqlconnect.getSalt()[1]
+            AESkey = encrypt.pbkdf2(x.encode(), salt.encode(), 100000, 32)
             break
         else:
             print("Wrong Password.. \nTry again..")
@@ -56,12 +58,12 @@ def main():
                         f.write(f"len={passlen}\nremove={removeChar}")
 
             password = passgen.generatePass(passlen, remove)
-            sqlconnect.insert(password, title or None, username or None)
+            sqlconnect.insert(AESkey, password, title or None, username or None)
         elif x.startswith("get"):
             try:
                 xLst = x.split(" ")
                 pID = int(xLst[1])
-                sqlconnect.get(pID)
+                sqlconnect.get(AESkey, pID)
                 sleep(1)
                 continue
             except IndexError:

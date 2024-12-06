@@ -67,7 +67,7 @@ def pbkdf2(password: 'bytes', salt, count, dk_length, digestmod=hashlib.sha256) 
     return dk[:dk_length]
 
 if __name__ == '__main__':
-    encBytes = pbkdf2(b'password', b'goodSalt', 10000, 32)
+    encBytes = pbkdf2(b'password', b'goodSalt', 100000, 32)
     print(encBytes)
     print(base64.b64encode(encBytes))
 

@@ -19,17 +19,11 @@ def unpad(s):
     padVerdi = s[-1]
     return s[:-padVerdi]
 
-def insert(passwd, title=None, usrname=None):
+def insert(key, passwd, title=None, usrname=None):
     from Crypto.Cipher import AES
     from Crypto.Random import get_random_bytes
 
     import base64
-
-    try:
-        with open(".key/key.bin", "rb") as f:
-            key = f.read()
-    except FileNotFoundError:
-        key = get_random_bytes(16)
         
     iv = get_random_bytes(16)
 
@@ -52,9 +46,6 @@ def insert(passwd, title=None, usrname=None):
         cursor.execute(query, (b64EncryptedPass, b64iv, title, usrname))
         db.commit()
 
-        with open(".key/key.bin", "wb") as f:
-            f.write(key)
-
         print("Successfully inserted into db..")
     except mysql.connector.Error as e:
         db = None
@@ -64,7 +55,7 @@ def insert(passwd, title=None, usrname=None):
             cursor.close()
             db.close()
 
-def get(pID):
+def get(key, pID):
     from Crypto.Cipher import AES
 
     import base64
@@ -81,9 +72,6 @@ def get(pID):
 
         b64password = base64.b64decode(x[0])
         b64iv = base64.b64decode(x[1])
-        
-        with open(".key/key.bin", "rb") as f:
-            key = f.read()
 
         cipher = AES.new(key, AES.MODE_CBC, b64iv)
         decrypted = cipher.decrypt(b64password)
@@ -116,19 +104,9 @@ def rightMaster(passInput):
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "SELECT salt, hash FROM users WHERE id = %s"
+        query = "SELECT hash FROM users WHERE id = %s"
         cursor.execute(query, (1, ))
-        salt, correctHash = cursor.fetchone()
-
-        passInput += str(salt)
-        
-        hashObject = hashlib.sha256(str(passInput).encode())
-        hashed = hashObject.hexdigest()
-
-        if hashed == correctHash:
-            return True
-        else:
-            return False
+        correctHash = cursor.fetchone()[0]
     except mysql.connector.Error as e:
         db = None
         print(f"sqlconnect rightMaster ERROR: {e}")
@@ -136,6 +114,17 @@ def rightMaster(passInput):
         if db != None and db.is_connected():
             cursor.close()
             db.close()
+
+    salt = getSalt()[0]
+    passInput += str(salt)
+    
+    hashObject = hashlib.sha256(str(passInput).encode())
+    hashed = hashObject.hexdigest()
+
+    if hashed == correctHash:
+        return True
+    else:
+        return False
 
 def getInfo():
     try:
@@ -161,5 +150,29 @@ def getInfo():
             cursor.close()
             db.close()
 
+def getSalt():
+    import base64
+
+    try:
+        db = mysql.connector.connect(**sqlconfig)
+        cursor = db.cursor()
+
+        query = "SELECT salt FROM users WHERE id = %s"
+        cursor.execute(query, (1, ))
+
+        b64salts = cursor.fetchone()[0]
+
+        salts = base64.b64decode(b64salts).decode()
+        saltsLst = salts.split(" ")
+
+        return saltsLst
+    except mysql.connector.Error as e:
+        db = None
+        print(f"sqlconnect getSalt ERROR: {e}")
+    finally:
+        if db != None and db.is_connected():
+            cursor.close()
+            db.close()
+
 if __name__ == "__main__":
-    print(getInfo())
+    print(rightMaster("password"))

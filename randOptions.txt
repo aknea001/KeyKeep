@@ -1,2 +1,2 @@
-len=30
-remove=None
+len=10
+remove=" '

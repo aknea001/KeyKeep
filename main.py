@@ -1,6 +1,7 @@
 import sqlconnect
 import art
 import passgen
+import encrypt
 from pwinput import pwinput
 from os import system
 from time import sleep

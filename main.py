@@ -10,7 +10,7 @@ def main():
         x = pwinput("Master Password: ")
 
         if sqlconnect.rightMaster(x):
-            system("clear") or system("cls")
+            system("clear")
             break
         else:
             print("Wrong Password.. \nTry again..")

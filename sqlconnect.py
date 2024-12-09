@@ -19,6 +19,11 @@ def unpad(s):
     padVerdi = s[-1]
     return s[:-padVerdi]
 
+def close(db, cursor):
+    if db != None and db.is_connected():
+            cursor.close()
+            db.close()
+
 def insert(key, passwd, title=None, usrname=None):
     from Crypto.Cipher import AES
     from Crypto.Random import get_random_bytes
@@ -51,9 +56,7 @@ def insert(key, passwd, title=None, usrname=None):
         db = None
         print(f"sqlconnect insert ERROR: {e}")
     finally:
-        if db != None and db.is_connected():
-            cursor.close()
-            db.close()
+        close(db, cursor)
 
 def get(key, pID):
     from Crypto.Cipher import AES
@@ -93,9 +96,22 @@ def get(key, pID):
         db = None
         print(f"sqlconnect get ERROR: {e}")
     finally:
-        if db != None and db.is_connected():
-            cursor.close()
-            db.close()
+        close(db, cursor)
+
+def remove(pID):
+    try:
+        db = mysql.connector.connect(**sqlconfig)
+        cursor = db.cursor()
+
+        query = "DELETE FROM passwds WHERE id = %s"
+        cursor.execute(query, (pID, ))
+
+        db.commit()
+    except mysql.connector.Error as e:
+        db = None
+        print(f"sqlconnect remove ERROR: {e}")
+    finally:
+        close(db, cursor)
 
 def rightMaster(passInput):
     import hashlib
@@ -111,9 +127,7 @@ def rightMaster(passInput):
         db = None
         print(f"sqlconnect rightMaster ERROR: {e}")
     finally:
-        if db != None and db.is_connected():
-            cursor.close()
-            db.close()
+        close(db, cursor)
 
     salt = getSalt()[0]
     passInput += str(salt)
@@ -146,9 +160,7 @@ def getInfo():
         db = None
         print(f"sqlconnect getInfo ERROR: {e}")
     finally:
-        if db != None and db.is_connected():
-            cursor.close()
-            db.close()
+        close(db, cursor)
 
 def getSalt():
     import base64
@@ -170,9 +182,7 @@ def getSalt():
         db = None
         print(f"sqlconnect getSalt ERROR: {e}")
     finally:
-        if db != None and db.is_connected():
-            cursor.close()
-            db.close()
+        close(db, cursor)
 
 if __name__ == "__main__":
     print(rightMaster("password"))

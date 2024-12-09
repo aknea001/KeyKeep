@@ -75,8 +75,25 @@ def main():
 
             try:
                 pID = int(input("ID: "))
-                sqlconnect.get(pID)
+                sqlconnect.get(AESkey, pID)
                 sleep(1)
+            except ValueError:
+                print("Has to be a whole number..")
+        elif x.startswith("rm"):
+            try:
+                xLst = x.split(" ")
+                pID = int(xLst[1])
+                sqlconnect.remove(pID)
+                continue
+            except IndexError:
+                pass
+            except ValueError:
+                print("Has to be a whole number..")
+                continue
+
+            try:
+                pID = int(input("ID: "))
+                sqlconnect.remove(pID)
             except ValueError:
                 print("Has to be a whole number..")
 

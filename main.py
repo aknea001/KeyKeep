@@ -20,7 +20,7 @@ def main():
 
     while True:
         art.table(sqlconnect.getInfo())
-        x = str(input(">> ")).strip()
+        x = str(input(">> ")).strip().lower()
         if x == "exit":
             break
         elif x == "clear":
@@ -57,7 +57,8 @@ def main():
                     with open("randOptions.txt", "w") as f:
                         f.write(f"len={passlen}\nremove={removeChar}")
 
-            password = passgen.generatePass(passlen, remove)
+                password = passgen.generatePass(passlen, remove)
+                
             sqlconnect.insert(AESkey, password, title or None, username or None)
         elif x.startswith("get"):
             try:

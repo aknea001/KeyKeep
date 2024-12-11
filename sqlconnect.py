@@ -24,7 +24,7 @@ def close(db, cursor):
             cursor.close()
             db.close()
 
-def insert(key, passwd, title=None, usrname=None):
+def insert(user, key, passwd, title=None, usrname=None):
     from Crypto.Cipher import AES
     from Crypto.Random import get_random_bytes
 
@@ -40,15 +40,17 @@ def insert(key, passwd, title=None, usrname=None):
     b64EncryptedPass = base64.b64encode(encryptedPass)
     b64iv = base64.b64encode(iv)
 
+    uID = getuID(user)
+
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "INSERT INTO passwds (password, iv, title, username)\
+        query = "INSERT INTO passwds (password, iv, title, username, userID)\
                 VALUES\
-                (%s, %s, %s, %s)"
+                (%s, %s, %s, %s, %s)"
         
-        cursor.execute(query, (b64EncryptedPass, b64iv, title, usrname))
+        cursor.execute(query, (b64EncryptedPass, b64iv, title, usrname, uID))
         db.commit()
 
         print("Successfully inserted into db..")
@@ -98,13 +100,14 @@ def get(key, pID):
     finally:
         close(db, cursor)
 
-def remove(pID):
+def remove(pID, username):
+    uID = getuID(username)
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "DELETE FROM passwds WHERE id = %s"
-        cursor.execute(query, (pID, ))
+        query = "DELETE FROM passwds WHERE id = %s AND userID = %s"
+        cursor.execute(query, (pID, uID))
 
         db.commit()
     except mysql.connector.Error as e:
@@ -113,15 +116,44 @@ def remove(pID):
     finally:
         close(db, cursor)
 
-def rightMaster(passInput):
+def addUser(name, passwd):
+    import hashlib
+    import base64
+    from secrets import token_hex
+
+    salts = f"{token_hex(32)} {token_hex(32)}"
+    flavorPass = passwd + str(salts.split(" ")[0])
+    hashed = hashlib.sha256(flavorPass.encode()).hexdigest()
+
+    b64salts = base64.b64encode(salts.encode())
+
+    try:
+        db = mysql.connector.connect(**sqlconfig)
+        cursor = db.cursor()
+
+        query = "INSERT INTO users (username, hash, salt)\
+                VALUES\
+                (%s, %s, %s)"
+        
+        cursor.execute(query, (name, hashed, b64salts))
+        db.commit()
+
+        print(f"Successfully added {name}..")
+    except mysql.connector.Error as e:
+        db = None
+        print(f"sqlconnect addUser ERROR: {e}")
+    finally:
+        close(db, cursor)
+
+def rightMaster(passInput, username):
     import hashlib
 
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "SELECT hash FROM users WHERE id = %s"
-        cursor.execute(query, (1, ))
+        query = "SELECT hash FROM users WHERE username = %s"
+        cursor.execute(query, (username, ))
         correctHash = cursor.fetchone()[0]
     except mysql.connector.Error as e:
         db = None
@@ -129,24 +161,27 @@ def rightMaster(passInput):
     finally:
         close(db, cursor)
 
-    salt = getSalt()[0]
+    salt = getSalt(username)[0]
     passInput += str(salt)
     
     hashObject = hashlib.sha256(str(passInput).encode())
     hashed = hashObject.hexdigest()
+    print(hashed)
+    print(correctHash)
 
     if hashed == correctHash:
         return True
     else:
         return False
 
-def getInfo():
+def getInfo(username):
+    uID = getuID(username)
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "SELECT id, title, username from passwds"
-        cursor.execute(query)
+        query = "SELECT id, title, username from passwds WHERE userID = %s"
+        cursor.execute(query, (uID, ))
 
         info = cursor.fetchall()
 
@@ -162,15 +197,15 @@ def getInfo():
     finally:
         close(db, cursor)
 
-def getSalt():
+def getSalt(username):
     import base64
 
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "SELECT salt FROM users WHERE id = %s"
-        cursor.execute(query, (1, ))
+        query = "SELECT salt FROM users WHERE username = %s"
+        cursor.execute(query, (username, ))
 
         b64salts = cursor.fetchone()[0]
 
@@ -184,5 +219,22 @@ def getSalt():
     finally:
         close(db, cursor)
 
+def getuID(username):
+    try:
+        db = mysql.connector.connect(**sqlconfig)
+        cursor = db.cursor()
+
+        query = "SELECT id FROM users WHERE username = %s"
+        cursor.execute(query, (username, ))
+
+        uID = cursor.fetchone()[0]
+
+        return uID
+    except mysql.connector.Error as e:
+        db = None
+        print(f"sqlconnect getuID ERROR: {e}")
+    finally:
+        close(db, cursor)
+
 if __name__ == "__main__":
-    print(rightMaster("password"))
+    print(rightMaster("bestpass123"))

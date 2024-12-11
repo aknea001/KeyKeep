@@ -8,18 +8,19 @@ from time import sleep
 
 def main():
     while True:
+        user = str(input("Username: "))
         x = pwinput("Master Password: ")
 
-        if sqlconnect.rightMaster(x):
+        if sqlconnect.rightMaster(x, user):
             system("clear")
-            salt = sqlconnect.getSalt()[1]
+            salt = sqlconnect.getSalt(user)[1]
             AESkey = encrypt.pbkdf2(x.encode(), salt.encode(), 100000, 32)
             break
         else:
             print("Wrong Password.. \nTry again..")
 
     while True:
-        art.table(sqlconnect.getInfo())
+        art.table(sqlconnect.getInfo(user))
         x = str(input(">> ")).strip().lower()
         if x == "exit":
             break
@@ -59,7 +60,7 @@ def main():
 
                 password = passgen.generatePass(passlen, remove)
                 
-            sqlconnect.insert(AESkey, password, title or None, username or None)
+            sqlconnect.insert(user, AESkey, password, title or None, username or None)
         elif x.startswith("get"):
             try:
                 xLst = x.split(" ")

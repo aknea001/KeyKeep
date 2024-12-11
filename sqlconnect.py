@@ -122,9 +122,13 @@ def remove(pID, username):
         close(db, cursor)
 
 def addUser(name, passwd):
+    import encrypt
     import hashlib
     import base64
     from secrets import token_hex
+    import pyotp
+    from Crypto.Cipher import AES
+    from Crypto.Random import get_random_bytes
 
     salts = f"{token_hex(32)} {token_hex(32)}"
     flavorPass = passwd + str(salts.split(" ")[0])
@@ -132,13 +136,23 @@ def addUser(name, passwd):
 
     b64salts = base64.b64encode(salts.encode())
 
+    AESkey = encrypt.pbkdf2(passwd, salts.split(" ")[1], 100000, 32)
+
+    token = pyotp.random_base32()
+    token = pad(token).encode
+
+    iv = get_random_bytes(16)
+
+    cipher = AES.new(AESkey, AES.MODE_CBC, iv)
+    encryptedKey = cipher.encrypt(passwd)
+
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "INSERT INTO users (username, hash, salt)\
+        query = "INSERT INTO users (username, hash, salt, totpKey)\
                 VALUES\
-                (%s, %s, %s)"
+                (%s, %s, %s, %s)"
         
         cursor.execute(query, (name, hashed, b64salts))
         db.commit()

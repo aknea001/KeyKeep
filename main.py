@@ -88,7 +88,7 @@ def main():
             try:
                 xLst = x.split(" ")
                 pID = int(xLst[1])
-                sqlconnect.remove(pID)
+                sqlconnect.remove(pID, user)
                 continue
             except IndexError:
                 pass

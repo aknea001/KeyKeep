@@ -3,8 +3,9 @@ import art
 import passgen
 import encrypt
 from pwinput import pwinput
-from os import system
 from time import sleep
+import os
+import sys
 
 def main():
     while True:
@@ -12,7 +13,7 @@ def main():
         x = pwinput("Master Password: ")
 
         if sqlconnect.rightMaster(x, user):
-            system("clear")
+            os.system("clear")
             salt = sqlconnect.getSalt(user)[1]
             AESkey = encrypt.pbkdf2(x.encode(), salt.encode(), 100000, 32)
             break
@@ -25,7 +26,10 @@ def main():
         if x == "exit":
             break
         elif x == "clear":
-            system("clear")
+            os.system("clear")
+        elif x == "restart":
+            os.system("clear")
+            os.execl(sys.executable, sys.executable, *sys.argv)
         elif x == "new":
             title = str(input("Title / Site: "))
             username = str(input("Username: "))

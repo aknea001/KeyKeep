@@ -101,6 +101,11 @@ def main():
                 sqlconnect.remove(pID)
             except ValueError:
                 print("Has to be a whole number..")
+        elif x == "adduser":
+            name = str(input("Username: "))
+            passwd = pwinput("Master Password: ")
+
+            sqlconnect.addUser(name, passwd)
 
 if __name__ == "__main__":
     main()

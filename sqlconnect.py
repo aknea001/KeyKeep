@@ -139,22 +139,25 @@ def addUser(name, passwd):
     AESkey = encrypt.pbkdf2(passwd, salts.split(" ")[1], 100000, 32)
 
     token = pyotp.random_base32()
-    token = pad(token).encode
+    token = pad(token).encode()
 
     iv = get_random_bytes(16)
 
     cipher = AES.new(AESkey, AES.MODE_CBC, iv)
-    encryptedKey = cipher.encrypt(passwd)
+    encryptedTotp = cipher.encrypt(token)
+
+    b64totp = base64.b64encode(encryptedTotp)
+    b64iv = base64.b64encode(iv)
 
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "INSERT INTO users (username, hash, salt, totpKey)\
+        query = "INSERT INTO users (username, hash, salt, totpKey, totpIV)\
                 VALUES\
-                (%s, %s, %s, %s)"
+                (%s, %s, %s, %s, %s)"
         
-        cursor.execute(query, (name, hashed, b64salts))
+        cursor.execute(query, (name, hashed, b64salts, b64totp, b64iv))
         db.commit()
 
         print(f"Successfully added {name}..")

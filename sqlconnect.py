@@ -122,13 +122,9 @@ def remove(pID, username):
         close(db, cursor)
 
 def addUser(name, passwd):
-    import encrypt
     import hashlib
     import base64
     from secrets import token_hex
-    import pyotp
-    from Crypto.Cipher import AES
-    from Crypto.Random import get_random_bytes
 
     salts = f"{token_hex(32)} {token_hex(32)}"
     flavorPass = passwd + str(salts.split(" ")[0])
@@ -136,28 +132,15 @@ def addUser(name, passwd):
 
     b64salts = base64.b64encode(salts.encode())
 
-    AESkey = encrypt.pbkdf2(passwd.encode(), salts.split(" ")[1].encode(), 100000, 32)
-
-    token = pyotp.random_base32()
-    token = pad(token).encode()
-
-    iv = get_random_bytes(16)
-
-    cipher = AES.new(AESkey, AES.MODE_CBC, iv)
-    encryptedTotp = cipher.encrypt(token)
-
-    b64totp = base64.b64encode(encryptedTotp)
-    b64iv = base64.b64encode(iv)
-
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "INSERT INTO users (username, hash, salt, totpKey, totpIV)\
+        query = "INSERT INTO users (username, hash, salt)\
                 VALUES\
-                (%s, %s, %s, %s, %s)"
+                (%s, %s, %s)"
         
-        cursor.execute(query, (name, hashed, b64salts, b64totp, b64iv))
+        cursor.execute(query, (name, hashed, b64salts))
         db.commit()
 
         print(f"Successfully added {name}..")
@@ -195,21 +178,6 @@ def rightMaster(passInput, username):
         return True
     else:
         return False
-    
-def rightAuth(username):
-    try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
-        query = "SELECT totpKey, totpIV FROM users WHERE username = %s"
-        cursor.execute(query, (username, ))
-
-        totpkey = cursor.fetchone()[0]
-        iv = cursor.fetchone()[1]
-    except mysql.connector.Error as e:
-        print(f"sqlconnect rightAuth ERROR: {e}")
-    finally:
-        close(db, cursor)
 
 def getInfo(username):
     uID = getuID(username)
@@ -274,4 +242,4 @@ def getuID(username):
         close(db, cursor)
 
 if __name__ == "__main__":
-    rightAuth("testTotp")
+    pass

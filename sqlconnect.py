@@ -136,7 +136,7 @@ def addUser(name, passwd):
 
     b64salts = base64.b64encode(salts.encode())
 
-    AESkey = encrypt.pbkdf2(passwd, salts.split(" ")[1], 100000, 32)
+    AESkey = encrypt.pbkdf2(passwd.encode(), salts.split(" ")[1].encode(), 100000, 32)
 
     token = pyotp.random_base32()
     token = pad(token).encode()
@@ -195,6 +195,21 @@ def rightMaster(passInput, username):
         return True
     else:
         return False
+    
+def rightAuth(username):
+    try:
+        db = mysql.connector.connect(**sqlconfig)
+        cursor = db.cursor()
+
+        query = "SELECT totpKey, totpIV FROM users WHERE username = %s"
+        cursor.execute(query, (username, ))
+
+        totpkey = cursor.fetchone()[0]
+        iv = cursor.fetchone()[1]
+    except mysql.connector.Error as e:
+        print(f"sqlconnect rightAuth ERROR: {e}")
+    finally:
+        close(db, cursor)
 
 def getInfo(username):
     uID = getuID(username)
@@ -259,4 +274,4 @@ def getuID(username):
         close(db, cursor)
 
 if __name__ == "__main__":
-    print(rightMaster("bestpass123"))
+    rightAuth("testTotp")

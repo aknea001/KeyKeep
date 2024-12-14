@@ -60,7 +60,7 @@ def insert(user, key, passwd, title=None, usrname=None):
     finally:
         close(db, cursor)
 
-def update(user, key, pID, passwd, title=None, usrname=None):
+def update(user, key, upID, passwd, title=None, usrname=None):
     from Crypto.Cipher import AES
     from Crypto.Random import get_random_bytes
 
@@ -77,6 +77,7 @@ def update(user, key, pID, passwd, title=None, usrname=None):
     b64iv = base64.b64encode(iv)
 
     uID = getuID(user)
+    pID = tranUpID(upID, uID)
 
     try:
         db = mysql.connector.connect(**sqlconfig)
@@ -143,8 +144,9 @@ def get(key, upID, user):
     finally:
         close(db, cursor)
 
-def remove(pID, username):
-    uID = getuID(username)
+def remove(upID, user):
+    uID = getuID(user)
+    pID = tranUpID(upID, uID)
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()

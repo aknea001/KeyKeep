@@ -19,7 +19,7 @@ def unpad(s):
     padVerdi = s[-1]
     return s[:-padVerdi]
 
-def close(db, cursor):
+def close(db, cursor=None):
     if db != None and db.is_connected():
             cursor.close()
             db.close()
@@ -59,6 +59,43 @@ def insert(user, key, passwd, title=None, usrname=None):
         print(f"sqlconnect insert ERROR: {e}")
     finally:
         close(db, cursor)
+
+def update(user, key, pID, passwd, title=None, usrname=None):
+    from Crypto.Cipher import AES
+    from Crypto.Random import get_random_bytes
+
+    import base64
+
+    iv = get_random_bytes(16)
+
+    passwd = pad(passwd).encode()
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+
+    encryptedPass = cipher.encrypt(passwd)
+
+    b64EncryptedPass = base64.b64encode(encryptedPass)
+    b64iv = base64.b64encode(iv)
+
+    uID = getuID(user)
+
+    try:
+        db = mysql.connector.connect(**sqlconfig)
+        cursor = db.cursor()
+
+        query = "UPDATE passwds\
+                SET password = %s, iv = %s\
+                WHERE id = %s AND userID = %s"
+        
+        cursor.execute(query, (b64EncryptedPass, b64iv, pID, uID))
+        db.commit()
+
+        print("Successfully updated password..")
+    except mysql.connector.Error as e:
+        db = None
+        print(f"sqlconnector update ERROR: {e}")
+    finally:
+        close(db, cursor)
+    
 
 def get(key, pID):
     from Crypto.Cipher import AES

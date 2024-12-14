@@ -101,6 +101,22 @@ def main():
                 sqlconnect.remove(pID)
             except ValueError:
                 print("Has to be a whole number..")
+        elif x.startswith("update"):
+            try:
+                xLst = x.split(" ")
+                pID = int(xLst[1])
+            except ValueError:
+                print("Has to be a whole number..")
+                continue
+            except IndexError:
+                try:
+                    pID = int(input("ID: "))
+                except ValueError:
+                    print("Has to be a whole number..")
+                    continue
+
+            newPass = str(input("New password: "))
+            sqlconnect.update(user, AESkey, pID, newPass)
         elif x == "adduser":
             name = str(input("Username: "))
             passwd = pwinput("Master Password: ")

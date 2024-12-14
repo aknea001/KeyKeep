@@ -1,5 +1,10 @@
 def table(lst):
     try:
+        count = 1
+        for el in lst:
+            el.insert(0, str(count))
+            count += 1
+
         maxlens = {}
 
         for i in range(len(lst[0])):

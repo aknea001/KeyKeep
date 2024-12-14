@@ -219,13 +219,13 @@ def rightMaster(passInput, username):
     else:
         return False
 
-def getInfo(username):
+def tableInfo(username):
     uID = getuID(username)
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "SELECT id, title, username from passwds WHERE userID = %s"
+        query = "SELECT title, username from passwds WHERE userID = %s"
         cursor.execute(query, (uID, ))
 
         info = cursor.fetchall()

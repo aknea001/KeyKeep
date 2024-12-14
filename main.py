@@ -21,7 +21,7 @@ def main():
             print("Wrong Password.. \nTry again..")
 
     while True:
-        art.table(sqlconnect.getInfo(user))
+        art.table(sqlconnect.tableInfo(user))
         x = str(input(">> ")).strip().lower()
         if x == "exit":
             break

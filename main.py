@@ -68,8 +68,8 @@ def main():
         elif x.startswith("get"):
             try:
                 xLst = x.split(" ")
-                pID = int(xLst[1])
-                sqlconnect.get(AESkey, pID)
+                upID = int(xLst[1])
+                sqlconnect.get(AESkey, upID, user)
                 sleep(1)
                 continue
             except IndexError:
@@ -79,8 +79,8 @@ def main():
                 continue
 
             try:
-                pID = int(input("ID: "))
-                sqlconnect.get(AESkey, pID)
+                upID = int(input("ID: "))
+                sqlconnect.get(AESkey, upID, user)
                 sleep(1)
             except ValueError:
                 print("Has to be a whole number..")

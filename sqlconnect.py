@@ -97,12 +97,13 @@ def update(user, key, pID, passwd, title=None, usrname=None):
         close(db, cursor)
     
 
-def get(key, pID):
+def get(key, upID, user):
     from Crypto.Cipher import AES
-
     import base64
-
     from tkinter import Tk
+
+    uID = getuID(user)
+    pID = tranUpID(upID, uID)
 
     try:
         db = mysql.connector.connect(**sqlconfig)
@@ -278,5 +279,22 @@ def getuID(username):
     finally:
         close(db, cursor)
 
+def tranUpID(upID, uID):
+    try:
+        db = mysql.connector.connect(**sqlconfig)
+        cursor = db.cursor()
+
+        query = "SELECT id FROM passwds WHERE userID = %s"
+        cursor.execute(query, (uID, ))
+
+        ids = cursor.fetchall()
+
+        return ids[upID - 1][0]
+    except mysql.connector.Error as e:
+        db = None
+        print(f"sqlconnect delete ERROR: {e}")
+    finally:
+        close(db, cursor)
+
 if __name__ == "__main__":
-    pass
+    print(tranUpID(1, 4))

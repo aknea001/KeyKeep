@@ -1,8 +1,0 @@
-new key structure:
-a key is generated with the master password with pbkdf2
-this is added to a var when you login so you cant access the passwords without the masterpass
-pbkdf2 needs a salt, so i decided to save one salt in the db which is 2 salts combined seperated by a space
-then its encoded using b64
-
-so the salts are:
-passSalt keySalt

@@ -8,7 +8,7 @@ sqlconfig = {
     "host": getenv("SQLHOST"),
     "user": getenv("SQLUSER"),
     "password": getenv("SQLPASSWD"),
-    "database": getenv("DATABASE")
+    "database": getenv("SQLDATABASE")
 }
 
 def pad(s):
@@ -18,11 +18,6 @@ def pad(s):
 def unpad(s):
     padVerdi = s[-1]
     return s[:-padVerdi]
-
-def close(db, cursor=None):
-    if db != None and db.is_connected():
-            cursor.close()
-            db.close()
 
 def insert(user, key, passwd, title=None, usrname=None):
     from Crypto.Cipher import AES
@@ -55,10 +50,11 @@ def insert(user, key, passwd, title=None, usrname=None):
 
         print("Successfully inserted into db..")
     except mysql.connector.Error as e:
-        db = None
         print(f"sqlconnect insert ERROR: {e}")
     finally:
-        close(db, cursor)
+        if db != None and db.is_connected():
+            db.close()
+            cursor.close()
 
 def update(user, key, upID, passwd, title=None, usrname=None):
     from Crypto.Cipher import AES
@@ -95,7 +91,9 @@ def update(user, key, upID, passwd, title=None, usrname=None):
         db = None
         print(f"sqlconnector update ERROR: {e}")
     finally:
-        close(db, cursor)
+        if db != None and db.is_connected():
+            db.close()
+            cursor.close()
     
 
 def get(key, upID, user):
@@ -142,7 +140,9 @@ def get(key, upID, user):
         db = None
         print(f"sqlconnect get ERROR: {e}")
     finally:
-        close(db, cursor)
+        if db != None and db.is_connected():
+            db.close()
+            cursor.close()
 
 def remove(upID, user):
     uID = getuID(user)
@@ -159,7 +159,9 @@ def remove(upID, user):
         db = None
         print(f"sqlconnect remove ERROR: {e}")
     finally:
-        close(db, cursor)
+        if db != None and db.is_connected():
+            db.close()
+            cursor.close()
 
 def addUser(name, passwd):
     import hashlib
@@ -188,7 +190,9 @@ def addUser(name, passwd):
         db = None
         print(f"sqlconnect addUser ERROR: {e}")
     finally:
-        close(db, cursor)
+        if db != None and db.is_connected():
+            db.close()
+            cursor.close()
 
 def rightMaster(passInput, username):
     import hashlib
@@ -204,7 +208,9 @@ def rightMaster(passInput, username):
         db = None
         print(f"sqlconnect rightMaster ERROR: {e}")
     finally:
-        close(db, cursor)
+        if db != None and db.is_connected():
+            db.close()
+            cursor.close()
 
     salt = getSalt(username)[0]
     passInput += str(salt)
@@ -240,7 +246,9 @@ def tableInfo(username):
         db = None
         print(f"sqlconnect getInfo ERROR: {e}")
     finally:
-        close(db, cursor)
+        if db != None and db.is_connected():
+            db.close()
+            cursor.close()
 
 def getSalt(username):
     import base64
@@ -262,7 +270,9 @@ def getSalt(username):
         db = None
         print(f"sqlconnect getSalt ERROR: {e}")
     finally:
-        close(db, cursor)
+        if db != None and db.is_connected():
+            db.close()
+            cursor.close()
 
 def getuID(username):
     try:
@@ -279,7 +289,9 @@ def getuID(username):
         db = None
         print(f"sqlconnect getuID ERROR: {e}")
     finally:
-        close(db, cursor)
+        if db != None and db.is_connected():
+            db.close()
+            cursor.close()
 
 def tranUpID(upID, uID):
     try:
@@ -296,7 +308,9 @@ def tranUpID(upID, uID):
         db = None
         print(f"sqlconnect delete ERROR: {e}")
     finally:
-        close(db, cursor)
+        if db != None and db.is_connected():
+            db.close()
+            cursor.close()
 
 if __name__ == "__main__":
     print(tranUpID(1, 4))

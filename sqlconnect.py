@@ -99,7 +99,9 @@ def update(user, key, upID, passwd, title=None, usrname=None):
 def get(key, upID, user):
     from Crypto.Cipher import AES
     import base64
-    from tkinter import Tk
+    import threading
+    import pyperclip
+    from time import sleep
 
     uID = getuID(user)
     pID = tranUpID(upID, uID)
@@ -123,19 +125,21 @@ def get(key, upID, user):
             print("ERROR: wrong key or problem with system..")
             return
 
-        root = Tk()
-        root.withdraw()
-        root.clipboard_append(decrypted)
+        pyperclip.copy(decrypted)
 
         def revertClip():
-            root.clipboard_clear()
+            sleep(10)
+
+            pyperclip.copy("")
 
         if decrypted == "":
             print("Wrong key..")
+            return
         else:
             print("Added password to your clipboard.. \nWill clear in 10 sec..")
 
-        root.after(10000, revertClip)
+        thread1 = threading.Thread(target=revertClip,   daemon=True)
+        thread1.start()
     except mysql.connector.Error as e:
         db = None
         print(f"sqlconnect get ERROR: {e}")

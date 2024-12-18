@@ -221,8 +221,6 @@ def rightMaster(passInput, username):
     
     hashObject = hashlib.sha256(str(passInput).encode())
     hashed = hashObject.hexdigest()
-    print(hashed)
-    print(correctHash)
 
     if hashed == correctHash:
         return True

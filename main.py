@@ -66,10 +66,24 @@ def main():
                 
             sqlconnect.insert(user, AESkey, password, title or None, username or None)
         elif x.startswith("get"):
+            headless = False
+
+            if " -h" in x:
+                headless = True
+
+                xLst = x.split(" ")
+                try:
+                    xLst.remove("-h")
+                except ValueError:
+                    print("need to seperate id and '-h'")
+                    continue
+
+                x = " ".join(xLst)
+
             try:
                 xLst = x.split(" ")
                 upID = int(xLst[1])
-                sqlconnect.get(AESkey, upID, user)
+                sqlconnect.get(AESkey, upID, user, headless)
                 sleep(1)
                 continue
             except IndexError:
@@ -80,7 +94,7 @@ def main():
 
             try:
                 upID = int(input("ID: "))
-                sqlconnect.get(AESkey, upID, user)
+                sqlconnect.get(AESkey, upID, user, headless)
                 sleep(1)
             except ValueError:
                 print("Has to be a whole number..")

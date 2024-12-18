@@ -126,9 +126,21 @@ def get(key, upID, user, headless: bool):
             print("ERROR: wrong key or problem with system..")
             return
         
+        def revertHeadless():
+            sleep(30)
+
+            os.remove("password.key")
+        
+        def revertClip():
+            sleep(10)
+
+            pyperclip.copy("")
+        
         if headless:
             with open("password.key", "w") as f:
                 f.write(decrypted)
+
+            print("Wrote password to 'password.key' \nWill delete in 30 sec..")
 
             headlessThread = threading.Thread(target=revertHeadless, daemon=True)
             headlessThread.start()
@@ -139,16 +151,6 @@ def get(key, upID, user, headless: bool):
         except pyperclip.PyperclipException:
             print("failed adding password to clipboard.. \nIf you're in a headless environment, use '-h' option to save to file instead")
             return
-
-        def revertClip():
-            sleep(10)
-
-            pyperclip.copy("")
-
-        def revertHeadless():
-            sleep(10)
-
-            os.remove("password.key")
 
         if decrypted == "":
             print("Wrong key..")

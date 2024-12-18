@@ -68,11 +68,15 @@ def main():
         elif x.startswith("get"):
             headless = False
 
-            if " -h " in x:
+            if " -h" in x:
                 headless = True
 
                 xLst = x.split(" ")
-                xLst.remove("-h")
+                try:
+                    xLst.remove("-h")
+                except ValueError:
+                    print("need to seperate id and '-h'")
+                    continue
 
                 x = " ".join(xLst)
 

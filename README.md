@@ -16,6 +16,11 @@
     * Grant appropriate privileges to the user (SELECT, INSERT, UPDATE, DELETE)
 
 ## Getting started
+ - To connect to your mysql server you have to fill out the .env file
+    * SQLHOST= **the ip to your mysql server (alternatively 'localhost' if hosted locally**
+    * SQLUSER= **the username of the mysql user you want to use**
+    * SQLPASSWD= **the password used with the USER to access mysql**
+    * SQLDATABASE= **the name of the database you want to use**
  - The sqldump comes with a root user by default (user: root, password: root)
  - Login with root and use 'adduser' command to create your users
  - 'restart' to logout, then login with your new user

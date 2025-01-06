@@ -32,6 +32,10 @@
       ```
       pip install -r requirements.txt
       ```
+  - OR ignore that shit and just install globally
+    ```
+    pip install -r requirements.txt
+    ```
  - To connect to your mysql server you have to fill out the .env file
     * SQLHOST= **the ip to your mysql server (alternatively 'localhost' if hosted locally**)
     * SQLUSER= **the username of the mysql user you want to use**

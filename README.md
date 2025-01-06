@@ -10,14 +10,30 @@
  - Create a designated database for keykeep
  - Use the mysql dump 'keykeep.sql' to recreate the tables
     ```
-    mysql -u **keykeep user** -p **keykeep database** < keykeep.sql
+    mysql -u root -p **keykeep database** < keykeep.sql
     ```
-    * Make a designated user (***optional***, but ***recommended***)
-    * Grant appropriate privileges to the user (SELECT, INSERT, UPDATE, DELETE)
+  - Make a designated user (***optional***, but ***recommended***)
+  - Grant appropriate privileges to the user (SELECT, INSERT, UPDATE, DELETE)
+    ```
+    mysql> GRANT SELECT, INSERT, UPDATE, DELETE ON **keykeep database name**.* TO "**mysql keykeep user**";
+    ```
 
 ## Getting started
+ - Download all requirements
+    * Start by creating a virtual environment
+      ```
+      python -m venv .venv
+      ```
+    * Activate your venv
+      ```
+      source .venv/bin/activate
+      ```
+    * Download requirements
+      ```
+      pip install -r requirements.txt
+      ```
  - To connect to your mysql server you have to fill out the .env file
-    * SQLHOST= **the ip to your mysql server (alternatively 'localhost' if hosted locally**
+    * SQLHOST= **the ip to your mysql server (alternatively 'localhost' if hosted locally**)
     * SQLUSER= **the username of the mysql user you want to use**
     * SQLPASSWD= **the password used with the USER to access mysql**
     * SQLDATABASE= **the name of the database you want to use**

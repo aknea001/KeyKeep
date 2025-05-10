@@ -191,21 +191,35 @@ def addUser(name, passwd):
     import base64
     from secrets import token_hex
 
+    from Crypto.Cipher import AES
+    from Crypto.Random import get_random_bytes
+    import encrypt
+
     salts = f"{token_hex(32)} {token_hex(32)}"
     flavorPass = passwd + str(salts.split(" ")[0])
     hashed = hashlib.sha256(flavorPass.encode()).hexdigest()
 
     b64salts = base64.b64encode(salts.encode())
 
+    kek = encrypt.pbkdf2(passwd.encode(), salts.split(" ")[1].encode(), 100000, 32)
+    dek = get_random_bytes(32)
+    iv = get_random_bytes(16)
+
+    cipher = AES.new(kek, AES.MODE_CBC, iv)
+    dekCiphertext = cipher.encrypt(dek)
+
+    b64Dek = base64.b64encode(dekCiphertext)
+    b64iv = base64.b64encode(iv)
+
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "INSERT INTO users (username, hash, salt)\
+        query = "INSERT INTO users (username, hash, salt, dek, iv)\
                 VALUES\
-                (%s, %s, %s)"
+                (%s, %s, %s, %s, %s)"
         
-        cursor.execute(query, (name, hashed, b64salts))
+        cursor.execute(query, (name, hashed, b64salts, b64Dek, b64iv))
         db.commit()
 
         print(f"Successfully added {name}..")
@@ -217,16 +231,17 @@ def addUser(name, passwd):
             db.close()
             cursor.close()
 
-def rightMaster(passInput, username):
+def rightMaster(passInput, username) -> list:
     import hashlib
 
     try:
         db = mysql.connector.connect(**sqlconfig)
         cursor = db.cursor()
 
-        query = "SELECT hash FROM users WHERE username = %s"
+        query = "SELECT hash, dek, iv FROM users WHERE username = %s"
         cursor.execute(query, (username, ))
-        correctHash = cursor.fetchone()[0]
+        data = cursor.fetchall()[0]
+        correctHash = data[0]
     except mysql.connector.Error as e:
         db = None
         print(f"sqlconnect rightMaster ERROR: {e}")
@@ -240,13 +255,11 @@ def rightMaster(passInput, username):
     
     hashObject = hashlib.sha256(str(passInput).encode())
     hashed = hashObject.hexdigest()
-    print(hashed)
-    print(correctHash)
 
     if hashed == correctHash:
-        return True
+        return [True, data[1], data[2]]
     else:
-        return False
+        return [False]
 
 def tableInfo(username):
     uID = getuID(username)
@@ -336,4 +349,4 @@ def tranUpID(upID, uID):
             cursor.close()
 
 if __name__ == "__main__":
-    print(tranUpID(1, 4))
+    addUser("del", "password")

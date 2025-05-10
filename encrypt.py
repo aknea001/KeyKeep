@@ -66,6 +66,25 @@ def pbkdf2(password: 'bytes', salt, count, dk_length, digestmod=hashlib.sha256) 
     # slice it to the desired length befor returning it.
     return dk[:dk_length]
 
+def b64decode(data: list):
+    results = []
+
+    for i in data:
+        decoded = base64.b64decode(str(i))
+        results.append(decoded)
+    
+    return results
+
+def decryptDek(kek, b64iv, b64ciphertext):
+    from Crypto.Cipher import AES
+
+    iv, ciphertext = b64decode([b64iv, b64ciphertext])
+
+    cipher = AES.new(kek, AES.MODE_CBC, iv)
+    dek = cipher.decrypt(ciphertext)
+
+    return dek
+
 if __name__ == '__main__':
     encBytes = pbkdf2(b'password', b'goodSalt', 100000, 32)
     print(encBytes)

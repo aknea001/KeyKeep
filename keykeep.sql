@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.40, for Linux (aarch64)
+-- MySQL dump 10.13  Distrib 8.0.42, for Linux (aarch64)
 --
 -- Host: localhost    Database: keykeep
 -- ------------------------------------------------------
--- Server version	8.0.40-0ubuntu0.24.04.1
+-- Server version       8.0.42-0ubuntu0.24.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -32,7 +32,7 @@ CREATE TABLE `passwds` (
   `modified` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `userID` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -56,9 +56,11 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   `hash` varchar(100) NOT NULL,
   `salt` varchar(200) DEFAULT NULL,
+  `dek` varchar(255) NOT NULL,
+  `iv` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,7 +69,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'root','45746ce547068723025ccab81dc0daf40dd38d28e4f47adf50246d831085b04a','MzMwNDc4ODBlNWJjYzg3MDhlNDBlNzJjOTk1NmM0NDIyNmYyMmRiOTg1ZGYyNTMwNDkyZjQ4NTQwMzM3YTI1YyAwNDRmMTAwMDRiNDZiNjc1MTY5MzVmN2RiODRhNjU4N2ZlNWY4NWI0NzlhNGExYzA0YjQ1NDI5NGM3NWVjMWFh');
+INSERT INTO `users` VALUES (1,'root','ccc4d9ebd9882e2e704b1ab2a63e54e26bdf29582b6f588280001806e5930295','NjJkNmQ0NzcxNTkxNDgyNGNmYjliNGUzNzJmNzM3ZmMzN2QzMWNiYmRkZjBiMGQwZDU3MzljNjc5M2ZlNTllZiA4YTI3ZDdiMzM3YjM2MWUxMGNkODkyMjNiYjIyNjcyMzQyOTBhODE5M2Y4MzA4ZmQzZTkyNmNiYTFjZDM0NTUw','Xjzp65ZNNJZBKWu1BVuN1NPympoE9neFHdruHDL5xKw=','C93mQIDTdsnR6pjHxCAjgg==');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -80,4 +82,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-15 13:35:35
+-- Dump completed on 2025-05-11  0:37:37

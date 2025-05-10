@@ -348,6 +348,3 @@ def tranUpID(upID, uID):
         if db != None and db.is_connected():
             db.close()
             cursor.close()
-
-if __name__ == "__main__":
-    addUser("del", "password")

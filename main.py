@@ -12,10 +12,13 @@ def main():
         user = str(input("Username: "))
         x = pwinput("Master Password: ")
 
-        if sqlconnect.rightMaster(x, user):
+        rightMaster = sqlconnect.rightMaster(x, user)
+
+        if rightMaster[0]:
             os.system("clear")
             salt = sqlconnect.getSalt(user)[1]
-            AESkey = encrypt.pbkdf2(x.encode(), salt.encode(), 100000, 32)
+            kek = encrypt.pbkdf2(x.encode(), salt.encode(), 100000, 32)
+            AESkey = encrypt.decryptDek(kek, rightMaster[2], rightMaster[1])
             break
         else:
             print("Wrong Password.. \nTry again..")

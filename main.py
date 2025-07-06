@@ -1,7 +1,5 @@
-import sqlconnect
+from backend import backend, passgen, encrypt
 import art
-import passgen
-import encrypt
 from pwinput import pwinput
 from time import sleep
 import os
@@ -15,11 +13,11 @@ def main():
         user = str(input("Username: "))
         x = pwinput("Master Password: ")
 
-        rightMaster = sqlconnect.rightMaster(x, user)
+        rightMaster = backend.rightMaster(x, user)
 
         if rightMaster[0]:
             os.system("clear")
-            salt = sqlconnect.getSalt(user)[1]
+            salt = backend.getSalt(user)[1]
             kek = encrypt.pbkdf2(x.encode(), salt.encode(), 100000, 32)
             AESkey = encrypt.decryptDek(kek, rightMaster[2], rightMaster[1])
             break
@@ -27,7 +25,7 @@ def main():
             print("Wrong Password.. \nTry again..")
 
     while True:
-        art.table(sqlconnect.tableInfo(user))
+        art.table(backend.tableInfo(user))
         x = str(input(">> ")).strip().lower()
         if x == "exit":
             break
@@ -70,7 +68,7 @@ def main():
 
                 password = passgen.generatePass(passlen, remove)
                 
-            sqlconnect.insert(user, AESkey, password, title or None, username or None)
+            backend.insert(user, AESkey, password, title or None, username or None)
         elif x.startswith("get"):
             headless = False
 
@@ -89,7 +87,7 @@ def main():
             try:
                 xLst = x.split(" ")
                 upID = int(xLst[1])
-                sqlconnect.get(AESkey, upID, user, headless)
+                backend.get(AESkey, upID, user, headless)
                 sleep(1)
                 continue
             except IndexError:
@@ -100,7 +98,7 @@ def main():
 
             try:
                 upID = int(input("ID: "))
-                sqlconnect.get(AESkey, upID, user, headless)
+                backend.get(AESkey, upID, user, headless)
                 sleep(1)
             except ValueError:
                 print("Has to be a whole number..")
@@ -108,7 +106,7 @@ def main():
             try:
                 xLst = x.split(" ")
                 pID = int(xLst[1])
-                sqlconnect.remove(pID, user)
+                backend.remove(pID, user)
                 continue
             except IndexError:
                 pass
@@ -118,7 +116,7 @@ def main():
 
             try:
                 pID = int(input("ID: "))
-                sqlconnect.remove(pID)
+                backend.remove(pID)
             except ValueError:
                 print("Has to be a whole number..")
         elif x.startswith("update"):
@@ -136,12 +134,12 @@ def main():
                     continue
 
             newPass = str(input("New password: "))
-            sqlconnect.update(user, AESkey, pID, newPass)
+            backend.update(user, AESkey, pID, newPass)
         elif x == "adduser":
             name = str(input("Username: "))
             passwd = pwinput("Master Password: ")
 
-            sqlconnect.addUser(name, passwd)
+            backend.addUser(name, passwd)
 
 if __name__ == "__main__":
     main()

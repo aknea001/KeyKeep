@@ -5,9 +5,12 @@ import encrypt
 from pwinput import pwinput
 from time import sleep
 import os
+from os.path import join, dirname, abspath
 import sys
 
 def main():
+    dirPath = dirname(abspath(__file__))
+
     while True:
         user = str(input("Username: "))
         x = pwinput("Master Password: ")
@@ -39,7 +42,7 @@ def main():
             password = str(input("Password* (default: random): "))
 
             if password == "":
-                with open("randOptions.txt", "r") as f:
+                with open(join(dirPath, "randOptions.txt"), "r") as f:
                     options = f.readlines()
 
                 defLength = options[0].strip().split("=")[1]
@@ -62,7 +65,7 @@ def main():
 
                 keepOpt = str(input("Save Options to default [y / n] (default: y): ").lower())
                 if keepOpt != ("n" or "no"):
-                    with open("randOptions.txt", "w") as f:
+                    with open(join(dirname, "randOptions.txt"), "w") as f:
                         f.write(f"len={passlen}\nremove={removeChar}")
 
                 password = passgen.generatePass(passlen, remove)

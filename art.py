@@ -1,4 +1,6 @@
 def table(lst):
+    from os.path import join, dirname, abspath
+
     try:
         count = 1
         for el in lst:
@@ -43,7 +45,7 @@ def table(lst):
             print(f"+{'-' * maxlens[i]}", end="")
         print("+")
     except IndexError:
-        with open("emptyTable.txt") as f:
+        with open(join(dirname(abspath(__file__)), "emptyTable.txt")) as f:
             print(f.read())
 
         print("'New' to add entry")

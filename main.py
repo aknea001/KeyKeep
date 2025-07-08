@@ -63,7 +63,7 @@ def main():
 
                 keepOpt = str(input("Save Options to default [y / n] (default: y): ").lower())
                 if keepOpt != ("n" or "no"):
-                    with open(join(dirname, "randOptions.txt"), "w") as f:
+                    with open(join(dirPath, "randOptions.txt"), "w") as f:
                         f.write(f"len={passlen}\nremove={removeChar}")
 
                 password = passgen.generatePass(passlen, remove)

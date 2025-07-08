@@ -1,15 +1,6 @@
-from dotenv import load_dotenv
-from os import getenv
-import mysql.connector
+from backend.databaseConnection import Database
 
-load_dotenv()
-
-sqlconfig = {
-    "host": getenv("SQLHOST"),
-    "user": getenv("SQLUSER"),
-    "password": getenv("SQLPASSWD"),
-    "database": getenv("SQLDATABASE")
-}
+db = Database()
 
 def pad(s):
     padding = 16 - len(s) % 16
@@ -38,23 +29,16 @@ def insert(user, key, passwd, title=None, usrname=None):
     uID = getuID(user)
 
     try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
         query = "INSERT INTO passwds (password, iv, title, username, userID)\
                 VALUES\
                 (%s, %s, %s, %s, %s)"
         
-        cursor.execute(query, (b64EncryptedPass, b64iv, title, usrname, uID))
-        db.commit()
+        db.execute(query, b64EncryptedPass, b64iv, title, usrname, uID)
 
         print("Successfully inserted into db..")
-    except mysql.connector.Error as e:
+    except ConnectionError as e:
         print(f"sqlconnect insert ERROR: {e}")
-    finally:
-        if db != None and db.is_connected():
-            db.close()
-            cursor.close()
+        return
 
 def update(user, key, upID, passwd, title=None, usrname=None):
     from Crypto.Cipher import AES
@@ -76,25 +60,16 @@ def update(user, key, upID, passwd, title=None, usrname=None):
     pID = tranUpID(upID, uID)
 
     try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
         query = "UPDATE passwds\
                 SET password = %s, iv = %s\
                 WHERE id = %s AND userID = %s"
         
-        cursor.execute(query, (b64EncryptedPass, b64iv, pID, uID))
-        db.commit()
+        db.execute(query, b64EncryptedPass, b64iv, pID, uID)
 
         print("Successfully updated password..")
-    except mysql.connector.Error as e:
-        db = None
+    except ConnectionError as e:
         print(f"sqlconnector update ERROR: {e}")
-    finally:
-        if db != None and db.is_connected():
-            db.close()
-            cursor.close()
-    
+        return
 
 def get(key, upID, user, headless: bool):
     from Crypto.Cipher import AES
@@ -108,84 +83,67 @@ def get(key, upID, user, headless: bool):
     pID = tranUpID(upID, uID)
 
     try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
         query = "SELECT password, iv FROM passwds WHERE id = %s"
-        cursor.execute(query, (pID, ))
-        x = cursor.fetchone()
-
-        b64password = base64.b64decode(x[0])
-        b64iv = base64.b64decode(x[1])
-
-        cipher = AES.new(key, AES.MODE_CBC, b64iv)
-        decrypted = cipher.decrypt(b64password)
-        try:
-            decrypted = unpad(decrypted).decode()
-        except UnicodeDecodeError:
-            print("ERROR: wrong key or problem with system..")
-            return
-        
-        def revertHeadless():
-            sleep(30)
-
-            os.remove("password.key")
-        
-        def revertClip():
-            sleep(10)
-
-            pyperclip.copy("")
-        
-        if headless:
-            with open("password.key", "w") as f:
-                f.write(decrypted)
-
-            print("Wrote password to 'password.key' \nWill delete in 30 sec..")
-
-            headlessThread = threading.Thread(target=revertHeadless, daemon=True)
-            headlessThread.start()
-            return
-
-        try:
-            pyperclip.copy(decrypted)
-        except pyperclip.PyperclipException:
-            print("failed adding password to clipboard.. \nIf you're in a headless environment, use '-h' option to save to file instead")
-            return
-
-        if decrypted == "":
-            print("Wrong key..")
-            return
-        else:
-            print("Added password to your clipboard.. \nWill clear in 10 sec..")
-
-        thread1 = threading.Thread(target=revertClip, daemon=True)
-        thread1.start()
-    except mysql.connector.Error as e:
-        db = None
+        x = db.execute(query, pID)[0]
+    except ConnectionError as e:
         print(f"sqlconnect get ERROR: {e}")
-    finally:
-        if db != None and db.is_connected():
-            db.close()
-            cursor.close()
+        return
+
+    b64password = base64.b64decode(x["password"])
+    b64iv = base64.b64decode(x["iv"])
+
+    cipher = AES.new(key, AES.MODE_CBC, b64iv)
+    decrypted = cipher.decrypt(b64password)
+    try:
+        decrypted = unpad(decrypted).decode()
+    except UnicodeDecodeError:
+        print("ERROR: wrong key or problem with system..")
+        return
+    
+    def revertHeadless():
+        sleep(30)
+
+        os.remove("password.key")
+    
+    def revertClip():
+        sleep(10)
+
+        pyperclip.copy("")
+    
+    if headless:
+        with open("password.key", "w") as f:
+            f.write(decrypted)
+
+        print("Wrote password to 'password.key' \nWill delete in 30 sec..")
+
+        headlessThread = threading.Thread(target=revertHeadless, daemon=True)
+        headlessThread.start()
+        return
+
+    try:
+        pyperclip.copy(decrypted)
+    except pyperclip.PyperclipException:
+        print("failed adding password to clipboard.. \nIf you're in a headless environment, use '-h' option to save to file instead")
+        return
+
+    if decrypted == "":
+        print("Wrong key..")
+        return
+    else:
+        print("Added password to your clipboard.. \nWill clear in 10 sec..")
+
+    thread1 = threading.Thread(target=revertClip, daemon=True)
+    thread1.start()
 
 def remove(upID, user):
     uID = getuID(user)
     pID = tranUpID(upID, uID)
     try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
         query = "DELETE FROM passwds WHERE id = %s AND userID = %s"
-        cursor.execute(query, (pID, uID))
-
-        db.commit()
-    except mysql.connector.Error as e:
-        db = None
+        db.execute(query, pID, uID)
+    except ConnectionError.connector.Error as e:
         print(f"sqlconnect remove ERROR: {e}")
-    finally:
-        if db != None and db.is_connected():
-            db.close()
-            cursor.close()
+        return
 
 def addUser(name, passwd):
     import hashlib
@@ -194,7 +152,7 @@ def addUser(name, passwd):
 
     from Crypto.Cipher import AES
     from Crypto.Random import get_random_bytes
-    import encrypt
+    from backend import encrypt
 
     salts = f"{token_hex(32)} {token_hex(32)}"
     flavorPass = passwd + str(salts.split(" ")[0])
@@ -213,43 +171,28 @@ def addUser(name, passwd):
     b64iv = base64.b64encode(iv)
 
     try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
         query = "INSERT INTO users (username, hash, salt, dek, iv)\
                 VALUES\
                 (%s, %s, %s, %s, %s)"
         
-        cursor.execute(query, (name, hashed, b64salts, b64Dek, b64iv))
-        db.commit()
+        db.execute(query, name, hashed, b64salts, b64Dek, b64iv)
 
         print(f"Successfully added {name}..")
-    except mysql.connector.Error as e:
-        db = None
+    except ConnectionError as e:
         print(f"sqlconnect addUser ERROR: {e}")
-    finally:
-        if db != None and db.is_connected():
-            db.close()
-            cursor.close()
+        return
 
 def rightMaster(passInput, username) -> list:
     import hashlib
 
     try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
         query = "SELECT hash, dek, iv FROM users WHERE username = %s"
-        cursor.execute(query, (username, ))
-        data = cursor.fetchall()[0]
-        correctHash = data[0]
-    except mysql.connector.Error as e:
-        db = None
+        data = db.execute(query, username)[0]
+    except ConnectionError as e:
         print(f"sqlconnect rightMaster ERROR: {e}")
-    finally:
-        if db != None and db.is_connected():
-            db.close()
-            cursor.close()
+        return
+
+    correctHash = data["hash"]
 
     salt = getSalt(username)[0]
     passInput += str(salt)
@@ -258,93 +201,57 @@ def rightMaster(passInput, username) -> list:
     hashed = hashObject.hexdigest()
 
     if hashed == correctHash:
-        return [True, data[1], data[2]]
+        return [True, data["dek"], data["iv"]]
     else:
         return [False]
 
 def tableInfo(username):
     uID = getuID(username)
     try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
         query = "SELECT title, username from passwds WHERE userID = %s"
-        cursor.execute(query, (uID, ))
-
-        info = cursor.fetchall()
-
-        goodInfo = []
-
-        for el in info:
-            goodInfo.append(list(map(str, el)))
-
-        return goodInfo
-    except mysql.connector.Error as e:
-        db = None
+        info = db.execute(query, uID)
+    except ConnectionError as e:
         print(f"sqlconnect getInfo ERROR: {e}")
-    finally:
-        if db != None and db.is_connected():
-            db.close()
-            cursor.close()
+        return
+
+    goodInfo = []
+
+    for el in info:
+        goodInfo.append([el["title"], el["username"]])
+
+    return goodInfo
 
 def getSalt(username):
     import base64
 
     try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
         query = "SELECT salt FROM users WHERE username = %s"
-        cursor.execute(query, (username, ))
-
-        b64salts = cursor.fetchone()[0]
-
-        salts = base64.b64decode(b64salts).decode()
-        saltsLst = salts.split(" ")
-
-        return saltsLst
-    except mysql.connector.Error as e:
-        db = None
+        b64salts = db.execute(query, username)[0]["salt"]
+    except ConnectionError as e:
         print(f"sqlconnect getSalt ERROR: {e}")
-    finally:
-        if db != None and db.is_connected():
-            db.close()
-            cursor.close()
+        return
+    
+    salts = base64.b64decode(b64salts).decode()
+    saltsLst = salts.split(" ")
+
+    return saltsLst
 
 def getuID(username):
     try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
         query = "SELECT id FROM users WHERE username = %s"
-        cursor.execute(query, (username, ))
-
-        uID = cursor.fetchone()[0]
-
-        return uID
-    except mysql.connector.Error as e:
-        db = None
+        uID = db.execute(query, username)
+    except ConnectionError as e:
         print(f"sqlconnect getuID ERROR: {e}")
-    finally:
-        if db != None and db.is_connected():
-            db.close()
-            cursor.close()
+        return
+    
+    return uID[0]["id"]
 
 def tranUpID(upID, uID):
     try:
-        db = mysql.connector.connect(**sqlconfig)
-        cursor = db.cursor()
-
         query = "SELECT id FROM passwds WHERE userID = %s"
-        cursor.execute(query, (uID, ))
-
-        ids = cursor.fetchall()
-
-        return ids[upID - 1][0]
-    except mysql.connector.Error as e:
-        db = None
+        ids = db.execute(query, uID)
+    except ConnectionError as e:
         print(f"sqlconnect delete ERROR: {e}")
-    finally:
-        if db != None and db.is_connected():
-            db.close()
-            cursor.close()
+        return
+    
+    return ids[upID - 1]["id"]

@@ -10,6 +10,51 @@ def unpad(s):
     padVerdi = s[-1]
     return s[:-padVerdi]
 
+def revertHeadless():
+    from time import sleep
+    import os
+
+    sleep(30)
+
+    os.remove("password.key")
+
+def revertClip():
+    from time import sleep
+    import pyperclip
+
+    sleep(10)
+
+    pyperclip.copy("")
+
+def copyToClipboard(decrypted, headless):
+    import threading
+    import pyperclip
+    
+    if headless:
+        with open("password.key", "w") as f:
+            f.write(decrypted)
+
+        print("Wrote password to 'password.key' \nWill delete in 30 sec..")
+
+        headlessThread = threading.Thread(target=revertHeadless, daemon=True)
+        headlessThread.start()
+        return
+
+    try:
+        pyperclip.copy(decrypted)
+    except pyperclip.PyperclipException:
+        print("failed adding password to clipboard.. \nIf you're in a headless environment, use '-h' option to save to file instead")
+        return
+
+    if decrypted == "":
+        print("Wrong key..")
+        return
+    else:
+        print("Added password to your clipboard.. \nWill clear in 10 sec..")
+
+    thread1 = threading.Thread(target=revertClip, daemon=True)
+    thread1.start()
+
 def insert(user, key, passwd, title=None, usrname=None):
     from Crypto.Cipher import AES
     from Crypto.Random import get_random_bytes
@@ -74,10 +119,6 @@ def update(user, key, upID, passwd, title=None, usrname=None):
 def get(key, upID, user, headless: bool):
     from Crypto.Cipher import AES
     import base64
-    import threading
-    import pyperclip
-    from time import sleep
-    import os
 
     uID = getuID(user)
     pID = tranUpID(upID, uID)
@@ -100,40 +141,7 @@ def get(key, upID, user, headless: bool):
         print("ERROR: wrong key or problem with system..")
         return
     
-    def revertHeadless():
-        sleep(30)
-
-        os.remove("password.key")
-    
-    def revertClip():
-        sleep(10)
-
-        pyperclip.copy("")
-    
-    if headless:
-        with open("password.key", "w") as f:
-            f.write(decrypted)
-
-        print("Wrote password to 'password.key' \nWill delete in 30 sec..")
-
-        headlessThread = threading.Thread(target=revertHeadless, daemon=True)
-        headlessThread.start()
-        return
-
-    try:
-        pyperclip.copy(decrypted)
-    except pyperclip.PyperclipException:
-        print("failed adding password to clipboard.. \nIf you're in a headless environment, use '-h' option to save to file instead")
-        return
-
-    if decrypted == "":
-        print("Wrong key..")
-        return
-    else:
-        print("Added password to your clipboard.. \nWill clear in 10 sec..")
-
-    thread1 = threading.Thread(target=revertClip, daemon=True)
-    thread1.start()
+    copyToClipboard(decrypted, headless)
 
 def remove(upID, user):
     uID = getuID(user)
@@ -141,7 +149,7 @@ def remove(upID, user):
     try:
         query = "DELETE FROM passwds WHERE id = %s AND userID = %s"
         db.execute(query, pID, uID)
-    except ConnectionError.connector.Error as e:
+    except ConnectionError as e:
         print(f"sqlconnect remove ERROR: {e}")
         return
 

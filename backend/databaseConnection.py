@@ -6,18 +6,18 @@ class Database():
     def __init__(self):
         load_dotenv()
 
-        self.dbConfig = {
-            "host": getenv("SQLHOST"),
-            "user": getenv("SQLUSER"),
-            "password": getenv("SQLPASSWD"),
-            "database": getenv("SQLDATABASE")
-        }
+        # self.dbConfig = {
+        #     "host": getenv("SQLHOST"),
+        #     "user": getenv("SQLUSER"),
+        #     "password": getenv("SQLPASSWD"),
+        #     "database": getenv("SQLDATABASE")
+        # }
 
-        self.pool = pooling.MySQLConnectionPool (
-            pool_name = "mypool",
-            pool_size = 5,
-            **self.dbConfig
-        )
+        # self.pool = pooling.MySQLConnectionPool (
+        #     pool_name = "mypool",
+        #     pool_size = 5,
+        #     **self.dbConfig
+        # )
     
     def execute(self, query: str, *args):
         values = tuple(args)

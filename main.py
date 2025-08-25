@@ -1,31 +1,48 @@
-from backend import backend, passgen, encrypt
+from backend import passgen
 import art
+from api.api import Api
 from pwinput import pwinput
 from time import sleep
+from dotenv import load_dotenv
 import os
 from os.path import join, dirname, abspath
 import sys
 
+load_dotenv()
+
 def main():
     dirPath = dirname(abspath(__file__))
+
+    exBackend = os.getenv("externalBackend")
+    host = os.getenv("SQLHOST")
+    port = os.getenv("SQLPORT")
+
+    if exBackend == "a":
+        api = Api(True, host, port)
+    elif exBackend == "f":
+        api = Api(False)
+    else:
+        askExBackend = str(input("Do you want to use an external backend? [y/n] (Default: n): "))
+
+        if askExBackend == "y":
+            api = Api(True, host, port)
+        else:
+            api = Api(False)
 
     while True:
         user = str(input("Username: "))
         x = pwinput("Master Password: ")
 
-        rightMaster = backend.rightMaster(x, user)
+        rightMaster = api.login(user, x)
 
-        if rightMaster[0]:
+        if rightMaster:
             os.system("clear")
-            salt = backend.getSalt(user)[1]
-            kek = encrypt.pbkdf2(x.encode(), salt.encode(), 100000, 32)
-            AESkey = encrypt.decryptDek(kek, rightMaster[2], rightMaster[1])
             break
         else:
             print("Wrong Password.. \nTry again..")
 
     while True:
-        art.table(backend.tableInfo(user))
+        art.table(api.tableData()["data"])
         x = str(input(">> ")).strip().lower()
         if x == "exit":
             break
@@ -68,7 +85,7 @@ def main():
 
                 password = passgen.generatePass(passlen, remove)
                 
-            backend.insert(user, AESkey, password, title or None, username or None)
+            api.insert(password, title or None, username or None)
         elif x.startswith("get"):
             headless = False
 
@@ -87,7 +104,7 @@ def main():
             try:
                 xLst = x.split(" ")
                 upID = int(xLst[1])
-                backend.get(AESkey, upID, user, headless)
+                api.get(upID, headless)
                 sleep(1)
                 continue
             except IndexError:
@@ -98,7 +115,7 @@ def main():
 
             try:
                 upID = int(input("ID: "))
-                backend.get(AESkey, upID, user, headless)
+                api.get(upID, headless)
                 sleep(1)
             except ValueError:
                 print("Has to be a whole number..")
@@ -106,7 +123,7 @@ def main():
             try:
                 xLst = x.split(" ")
                 pID = int(xLst[1])
-                backend.remove(pID, user)
+                api.remove(pID)
                 continue
             except IndexError:
                 pass
@@ -116,7 +133,7 @@ def main():
 
             try:
                 pID = int(input("ID: "))
-                backend.remove(pID)
+                api.remove(pID)
             except ValueError:
                 print("Has to be a whole number..")
         elif x.startswith("update"):
@@ -134,12 +151,12 @@ def main():
                     continue
 
             newPass = str(input("New password: "))
-            backend.update(user, AESkey, pID, newPass)
+            api.update(pID, newPass)
         elif x == "adduser":
             name = str(input("Username: "))
             passwd = pwinput("Master Password: ")
 
-            backend.addUser(name, passwd)
+            api.addUser(name, passwd)
 
 if __name__ == "__main__":
     main()

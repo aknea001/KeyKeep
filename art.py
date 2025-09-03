@@ -14,8 +14,8 @@ def table(lst):
 
         for el in lst:
             for i in range(len(el)):
-                if len(el[i]) + 2 > maxlens[i]:
-                    maxlens[i] = len(el[i]) + 2
+                if len(str(el[i])) + 2 > maxlens[i]:
+                    maxlens[i] = len(str(el[i])) + 2
 
         column = ["ID", "Title", "Username"]
         for i in range(len(lst[0])):
@@ -37,7 +37,7 @@ def table(lst):
 
         for item in lst:
             for i in range(len(item)):
-                print(f"| {item[i]}{' ' * (maxlens[i] - len(item[i]) - 1)}", end="")
+                print(f"| {item[i]}{' ' * (maxlens[i] - len(str(item[i])) - 1)}", end="")
             
             print("|")
 
